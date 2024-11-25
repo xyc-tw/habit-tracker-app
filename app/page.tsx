@@ -1,101 +1,247 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState, useRef, useEffect } from 'react';
+import { format, addDays, subDays, startOfToday } from 'date-fns';
+import { PlusCircle, Check, Calendar, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface Habit {
+  id: number;
+  name: string;
+  tracked: {
+    [key: string]: boolean;
+  };
+}
+
+export default function Page() {
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [dates, setDates] = useState<Date[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Generate dates for current month
+  useEffect(() => {
+    const newDates: Date[] = [];
+    const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      newDates.push(new Date(d));
+    }
+    
+    setDates(newDates);
+  }, [currentMonth]);
+
+  const formatDate = (date: Date): string => {
+    return new Intl.DateTimeFormat('en-US', { 
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  };
+
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+
+  const toggleHabitStatus = (habitId: number, date: Date): void => {
+    const dateString = date.toISOString().split('T')[0];
+    setHabits(habits.map(habit => {
+      if (habit.id === habitId) {
+        const newTracked = { ...habit.tracked };
+        newTracked[dateString] = !newTracked[dateString];
+        return { ...habit, tracked: newTracked };
+      }
+      return habit;
+    }));
+  };
+
+  const addHabit = (): void => {
+    if (habits.length < 10) {
+      const newHabit: Habit = {
+        id: Date.now(),
+        name: 'New Habit',
+        tracked: {}
+      };
+      setHabits([...habits, newHabit]);
+      setEditingHabitId(newHabit.id);
+    }
+  };
+
+  const updateHabitName = (habitId: number, newName: string): void => {
+    setHabits(habits.map(habit => 
+      habit.id === habitId ? { ...habit, name: newName } : habit
+    ));
+    setEditingHabitId(null);
+  };
+
+  const navigateMonth = (direction: number): void => {
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + direction);
+      return newDate;
+    });
+  };
+
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow" style={{
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Header */}
+      <div className="p-6 border-b" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Calendar className="w-6 h-6" />
+          <h1 className="text-2xl font-bold">Habit Tracker</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={goToToday}
+            className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-100 text-sm"
+          >
+            Today
+          </button>
+          <button
+            onClick={() => navigateMonth(-1)}
+            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="min-w-[120px] text-center">
+            {new Intl.DateTimeFormat('en-US', { 
+              month: 'long',
+              year: 'numeric'
+            }).format(currentMonth)}
+          </span>
+          <button
+            onClick={() => navigateMonth(1)}
+            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Main content - Horizontal layout */}
+      <div style={{ display: 'flex' }}>
+        {/* Left side - Habits List */}
+        <div className="w-64 p-6 border-r" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          {habits.map(habit => (
+            <div
+              key={habit.id}
+              className="p-2 rounded hover:bg-gray-100 cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              {editingHabitId === habit.id ? (
+                <input
+                  type="text"
+                  defaultValue={habit.name}
+                  onBlur={(e) => updateHabitName(habit.id, e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && updateHabitName(habit.id, e.currentTarget.value)}
+                  className="w-full px-2 py-1 border rounded"
+                  style={{ flex: 1 }}
+                  autoFocus
+                />
+              ) : (
+                <>
+                  <span className="font-medium" style={{ flex: 1 }}>{habit.name}</span>
+                  <button
+                    onClick={() => setEditingHabitId(habit.id)}
+                    className="p-1 rounded hover:bg-gray-200"
+                  >
+                    <Edit2 className="w-4 h-4 text-gray-400" />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
+          {habits.length < 10 && (
+            <button
+              onClick={addHabit}
+              className="w-full p-2 border rounded text-gray-500 hover:bg-gray-50 cursor-pointer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <PlusCircle className="w-4 h-4" />
+              Add Habit
+            </button>
+          )}
+        </div>
+
+        {/* Right side - Calendar Grid */}
+        <div className="p-6" style={{ flex: 1 }}>
+          <div className="border rounded-lg overflow-hidden">
+            <div ref={scrollRef} className="overflow-x-auto">
+              <div style={{ 
+                display: 'inline-flex', 
+                flexDirection: 'column', 
+                minWidth: '100%' 
+              }}>
+                {/* Date Headers */}
+                <div className="border-b bg-gray-50" style={{ display: 'flex' }}>
+                  {dates.map((date, index) => (
+                    <div
+                      key={index}
+                      className={`w-14 p-2 text-center border-r last:border-r-0
+                        ${isToday(date) ? 'bg-blue-50 font-bold' : ''}`}
+                    >
+                      {formatDate(date)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Habit Rows */}
+                {habits.map(habit => (
+                  <div key={habit.id} style={{ display: 'flex' }}>
+                    {dates.map((date, index) => {
+                      const dateString = date.toISOString().split('T')[0];
+                      const status = habit.tracked[dateString];
+                      
+                      return (
+                        <div 
+                          key={index}
+                          onClick={() => toggleHabitStatus(habit.id, date)}
+                          className={`w-14 h-14 border-r last:border-r-0 border-b cursor-pointer
+                            ${status ? 'bg-green-100 hover:bg-green-200' : 'hover:bg-gray-50'}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {status && <Check className="w-5 h-5 text-green-600" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

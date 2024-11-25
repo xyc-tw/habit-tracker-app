@@ -1,0 +1,1 @@
+// Same content, just moved to root/components/HabitsList.tsx 
