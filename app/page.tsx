@@ -107,7 +107,7 @@ export default function Page() {
       <div className="p-6 border-b">
         <div className="flex items-center justify-between">
           <div className="flex justify-items-center gap-2 flex-row" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
-            <h1 className="text-xl font-bold w-32" style={{ color: 'red' }}>Habit Tracker</h1>
+            <h1 className="text-xl font-bold w-32">Habit Tracker</h1>
           </div>
           <div className="flex flex-row justify-items-center gap-2 justify-end" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '1rem'}}>
             <button
