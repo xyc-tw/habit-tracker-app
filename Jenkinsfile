@@ -6,7 +6,7 @@ pipeline {
         ECR_REPOSITORY_URL = "329599638481.dkr.ecr.eu-central-1.amazonaws.com/habit-tracker"
         DOCKER_IMAGE = "${ECR_REPOSITORY_URL}:${env.BUILD_NUMBER}"
         GITHUB_PAT = credentials('github-habit-tracker')
-        AWS_CREDENTIALS = credentials('aws-credentials-id') 
+        AWS_CREDENTIALS = credentials('habit-tracker-app') 
 
         // Docker Hub repository (commented out)
         // DOCKER_IMAGE_HUB = "xyc2025/habit-tracker-app:${env.BUILD_NUMBER}"
@@ -82,8 +82,10 @@ pipeline {
     }
     post {
         always {
-            // Clean up any running containers after the pipeline finishes
-            sh 'docker ps -q --filter "name=habit-tracker-app" | xargs -r docker stop | xargs -r docker rm'
+            node {
+                // Clean up any running containers after the pipeline finishes
+                sh 'docker ps -q --filter "name=habit-tracker-app" | xargs -r docker stop | xargs -r docker rm'
+            }
         }
     }
 }
