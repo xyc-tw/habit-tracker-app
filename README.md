@@ -1,3 +1,7 @@
+# Intergrate NextJs app with Jenkins for CICD
+![CICD workflow](public/cicd-pipeline.jpg)
+
+
 # 1. Functional Requirements
 ### 1.1 User Management
 - Login and Signup System:
