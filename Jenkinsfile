@@ -5,12 +5,23 @@ pipeline {
         // Define Docker Hub credentials and repository
         DOCKER_IMAGE = 'xyc2025/habit-tracker-app:tagname'
         DOCKER_CREDENTIALS = 'admin-habit-tracker'  
+        GITHUB_PAT = credentials('github-habit-tracker')
     }
 
     stages {
-        stage('Check PATH') {
+        stage('Checkout Code') {
             steps {
-                sh 'echo $PATH'
+                git branch: 'main',
+                    url: "https://$GITHUB_PAT@github.com/your-username/your-repo.git"
+            }
+        }
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main',
+                    url: "https://$GITHUB_PAT@github.com/xyc-tw/habit-tracker-app.git"
             }
         }
 
