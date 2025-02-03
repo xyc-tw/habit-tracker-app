@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Define Docker Hub credentials and repository
         DOCKER_IMAGE = 'xyc2025/habit-tracker-app:tagname'
-        DOCKER_CREDENTIALS = 'admin-habit-tracker'  
+        DOCKER_CREDENTIALS = credentials('dockerhub-habit-tracker')
         GITHUB_PAT = credentials('github-habit-tracker')
     }
 
@@ -13,6 +13,15 @@ pipeline {
             steps {
                 git branch: 'main',
                     url: "https://$GITHUB_PAT@github.com/xyc-tw/habit-tracker-app.git"
+            }
+        }
+
+        stage('Pull Latest Code') {
+            steps {
+                script {
+                    // Pull the latest code from GitHub
+                    sh 'git pull origin main'
+                }
             }
         }
 
@@ -27,14 +36,11 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    // Login to Docker Hub (credentials must be stored in Jenkins)
-                    docker.withCredentials([usernamePassword(credentialsId: "$DOCKER_CREDENTIALS", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    script {
+                        // Push the Docker image to Docker Hub
+                        sh "docker push xyc2025/habit-tracker-app:tagname"
                     }
-
-                    // Push the Docker image to Docker Hub
-                    sh 'docker push $DOCKER_IMAGE'
                 }
             }
         }
