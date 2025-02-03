@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { format, addDays, subDays, startOfToday } from 'date-fns';
+import { format, addMonths, subMonths, startOfToday } from 'date-fns';
 import { PlusCircle, Check, Calendar, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Habit {
@@ -84,6 +84,15 @@ export default function HabitTracker() {
     });
   };
 
+  const goToToday = () => {
+    setCurrentMonth(new Date());
+  };
+
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const [year, month] = event.target.value.split('-').map(Number);
+    setCurrentMonth(new Date(year, month - 1));
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow">
       {/* Header */}
@@ -95,17 +104,31 @@ export default function HabitTracker() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={goToToday}
+              className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-100 text-sm"
+            >
+              Today
+            </button>
+            <button
               onClick={() => navigateMonth(-1)}
               className="p-2 hover:bg-gray-100 rounded"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="min-w-[120px] text-center">
-              {new Intl.DateTimeFormat('en-US', { 
-                month: 'long',
-                year: 'numeric'
-              }).format(currentMonth)}
-            </span>
+            <select
+              value={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`}
+              onChange={handleMonthChange}
+              className="p-2 border rounded"
+            >
+              {Array.from({ length: 12 }).map((_, index) => {
+                const date = new Date(currentMonth.getFullYear(), index);
+                return (
+                  <option key={index} value={`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`}>
+                    {format(date, 'MMMM yyyy')}
+                  </option>
+                );
+              })}
+            </select>
             <button
               onClick={() => navigateMonth(1)}
               className="p-2 hover:bg-gray-100 rounded"
@@ -202,4 +225,4 @@ export default function HabitTracker() {
       </div>
     </div>
   );
-} 
+}

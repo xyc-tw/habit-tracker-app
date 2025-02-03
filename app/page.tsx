@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { format, addDays, subDays, startOfToday } from 'date-fns';
+import { format, addMonths, subMonths, startOfToday } from 'date-fns';
 import { PlusCircle, Check, Calendar, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
-import Header from './components/Header';
 
 interface Habit {
   id: number;
@@ -94,12 +93,59 @@ export default function Page() {
     setCurrentMonth(new Date());
   };
 
+  const handleMonthChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const [year, month] = event.target.value.split('-').map(Number);
+    setCurrentMonth(new Date(year, month - 1));
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto bg-white rounded-lg shadow" style={{
       display: 'flex',
       flexDirection: 'column'
     }}>
-      <Header />
+      {/* Header */}
+      <div className="p-6 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex justify-items-center gap-2 flex-row" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center'}}>
+            <h1 className="text-xl font-bold w-32">Habit Tracker</h1>
+          </div>
+          <div className="flex flex-row justify-items-center gap-2 justify-end" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '1rem'}}>
+            <button
+              onClick={goToToday}
+              className="px-3 py-1 rounded border border-gray-500 hover:bg-gray-100 text-sm"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => navigateMonth(-1)}
+              className="p-2 hover:bg-gray-100 rounded"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <select
+              value={`${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`}
+              onChange={handleMonthChange}
+              className="p-2 border rounded"
+            >
+              {Array.from({ length: 12 }).map((_, index) => {
+                const date = new Date(currentMonth.getFullYear(), index);
+                return (
+                  <option key={index} value={`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`}>
+                    {format(date, 'MMMM yyyy')}
+                  </option>
+                );
+              })}
+            </select>
+            <button
+              onClick={() => navigateMonth(1)}
+              className="p-2 hover:bg-gray-100 rounded"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Main content - Horizontal layout */}
       <div style={{ display: 'flex', gap: '24px' }}> {/* Added gap between left and right sections */}
         {/* Left side - Habits List */}
