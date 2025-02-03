@@ -2,9 +2,8 @@ pipeline {
     agent any
 
     environment {
-        // Define Docker Hub credentials and repository
+        // Define Docker Hub repository
         DOCKER_IMAGE = 'xyc2025/habit-tracker-app:tagname'
-        DOCKER_CREDENTIALS = credentials('dockerhub-habit-tracker')
         GITHUB_PAT = credentials('github-habit-tracker')
     }
 
@@ -36,19 +35,10 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "$DOCKER_CREDENTIALS", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
-                        // Debug output for Docker credentials
-                        echo "Docker Username: $DOCKER_USERNAME"  // Debug output
-                        echo "Docker Password: $DOCKER_PASSWORD"  // Debug output
-                        
-                        // Login to Docker Hub
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                        
-                        // Push the Docker image to Docker Hub
-                        sh 'docker push $DOCKER_IMAGE'
-                    }
-                }
+                script {
+                    // Push the Docker image to Docker Hub
+                    sh 'docker push $DOCKER_IMAGE'
+                }                git reset --soft HEAD~1
             }
         }
 
