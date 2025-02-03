@@ -38,8 +38,13 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: "$DOCKER_CREDENTIALS", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     script {
+                        // Debug output for Docker credentials
+                        echo "Docker Username: $DOCKER_USERNAME"  // Debug output
+                        echo "Docker Password: $DOCKER_PASSWORD"  // Debug output
+                        
                         // Login to Docker Hub
                         sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        
                         // Push the Docker image to Docker Hub
                         sh 'docker push $DOCKER_IMAGE'
                     }
