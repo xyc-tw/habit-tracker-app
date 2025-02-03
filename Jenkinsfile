@@ -12,15 +12,6 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: "https://$GITHUB_PAT@github.com/your-username/your-repo.git"
-            }
-        }
-    }
-
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
                     url: "https://$GITHUB_PAT@github.com/xyc-tw/habit-tracker-app.git"
             }
         }
