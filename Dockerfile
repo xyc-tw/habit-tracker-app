@@ -19,5 +19,5 @@ RUN npm run build
 # Expose the port your app runs on
 EXPOSE 3000
 
-# Run the app in production mode
-CMD ["npm", "run", "start"]
+# Run the app in dev mode
+CMD ["npm", "run", "dev"]
