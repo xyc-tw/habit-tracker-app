@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { format, addDays, subDays, startOfToday } from 'date-fns';
 import { PlusCircle, Check, Calendar, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+import Header from './components/Header';
 
 interface Habit {
   id: number;
@@ -34,9 +35,14 @@ export default function Page() {
 
   const formatDate = (date: Date): string => {
     return new Intl.DateTimeFormat('en-US', { 
-      month: 'short',
       day: 'numeric'
     }).format(date);
+  };
+
+  const formatWeekday = (date: Date): string => {
+    return new Intl.DateTimeFormat('en-US', { 
+      weekday: 'short'
+    }).format(date).toUpperCase();
   };
 
   const isToday = (date: Date): boolean => {
@@ -46,8 +52,7 @@ export default function Page() {
            date.getFullYear() === today.getFullYear();
   };
 
-  const toggleHabitStatus = (habitId: number, date: Date): void => {
-    const dateString = date.toISOString().split('T')[0];
+  const toggleHabitStatus = (habitId: number, dateString: string): void => {
     setHabits(habits.map(habit => {
       if (habit.id === habitId) {
         const newTracked = { ...habit.tracked };
@@ -94,52 +99,18 @@ export default function Page() {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      {/* Header */}
-      <div className="p-6 border-b" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar className="w-6 h-6" />
-          <h1 className="text-2xl font-bold">Habit Tracker</h1>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={goToToday}
-            className="px-3 py-1 rounded border border-gray-200 hover:bg-gray-100 text-sm"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => navigateMonth(-1)}
-            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="min-w-[120px] text-center">
-            {new Intl.DateTimeFormat('en-US', { 
-              month: 'long',
-              year: 'numeric'
-            }).format(currentMonth)}
-          </span>
-          <button
-            onClick={() => navigateMonth(1)}
-            className="p-2 rounded hover:bg-gray-100 cursor-pointer"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
+      <Header />
       {/* Main content - Horizontal layout */}
-      <div style={{ display: 'flex' }}>
+      <div style={{ display: 'flex', gap: '24px' }}> {/* Added gap between left and right sections */}
         {/* Left side - Habits List */}
         <div className="w-64 p-6 border-r" style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px'
+          gap: '16px', // Increased gap between habit items and "Add Habit" button
+          textAlign: 'center' // Center-align text in habit list
         }}>
+          {/* Blank space to align with date headers */}
+          <div style={{ height: '48px' }}></div> {/* Adjust height as needed */}
           {habits.map(habit => (
             <div
               key={habit.id}
@@ -147,7 +118,8 @@ export default function Page() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                height: '48px' // Set fixed height for habit items
               }}
             >
               {editingHabitId === habit.id ? (
@@ -181,7 +153,8 @@ export default function Page() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px'
+                gap: '8px',
+                height: '48px' // Set fixed height for "Add Habit" button
               }}
             >
               <PlusCircle className="w-4 h-4" />
@@ -195,47 +168,52 @@ export default function Page() {
           <div className="border rounded-lg overflow-hidden">
             <div ref={scrollRef} className="overflow-x-auto">
               <div style={{ 
-                display: 'inline-flex', 
-                flexDirection: 'column', 
-                minWidth: '100%' 
+                display: 'grid', 
+                gridTemplateColumns: `repeat(${dates.length}, minmax(0, 1fr))`, 
+                gap: '16px' // Added gap between date headers and habit rows
               }}>
                 {/* Date Headers */}
-                <div className="border-b bg-gray-50" style={{ display: 'flex' }}>
-                  {dates.map((date, index) => (
-                    <div
-                      key={index}
-                      className={`w-14 p-2 text-center border-r last:border-r-0
-                        ${isToday(date) ? 'bg-blue-50 font-bold' : ''}`}
-                    >
-                      {formatDate(date)}
-                    </div>
-                  ))}
-                </div>
+                {dates.map((date, index) => (
+                  <div
+                    key={index}
+                    className={`w-16 p-3 text-center border-r border-b
+                      ${isToday(date) ? 'bg-blue-50 font-bold' : ''}`} // Increased width and padding
+                    style={{ 
+                      padding: '8px', // Added padding to date cells
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <div>{formatDate(date)}</div>
+                    <div>{formatWeekday(date)}</div>
+                  </div>
+                ))}
 
                 {/* Habit Rows */}
                 {habits.map(habit => (
-                  <div key={habit.id} style={{ display: 'flex' }}>
-                    {dates.map((date, index) => {
-                      const dateString = date.toISOString().split('T')[0];
-                      const status = habit.tracked[dateString];
-                      
-                      return (
-                        <div 
-                          key={index}
-                          onClick={() => toggleHabitStatus(habit.id, date)}
-                          className={`w-14 h-14 border-r last:border-r-0 border-b cursor-pointer
-                            ${status ? 'bg-green-100 hover:bg-green-200' : 'hover:bg-gray-50'}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          {status && <Check className="w-5 h-5 text-green-600" />}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  dates.map((date, index) => {
+                    const dateString = date.toISOString().split('T')[0];
+                    const status = habit.tracked[dateString];
+                    
+                    return (
+                      <div 
+                        key={`${habit.id}-${index}`}
+                        onClick={() => toggleHabitStatus(habit.id, dateString)}
+                        className={`w-16 h-16 border-r border-b cursor-pointer
+                          ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'} ${status ? 'bg-green-100 hover:bg-green-200' : 'hover:bg-gray-50'}`} // Alternating background colors
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '48px' // Set fixed height for grid cells
+                        }}
+                      >
+                        {status && <Check className="w-5 h-5 text-green-600" />}
+                      </div>
+                    );
+                  })
                 ))}
               </div>
             </div>
