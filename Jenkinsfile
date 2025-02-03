@@ -80,12 +80,4 @@ pipeline {
             }
         }
     }
-    post {
-        always {
-            node {
-                // Clean up any running containers after the pipeline finishes
-                sh 'docker ps -q --filter "name=habit-tracker-app" | xargs -r docker stop | xargs -r docker rm'
-            }
-        }
-    }
 }
