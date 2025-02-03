@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Define Docker Hub repository
-        DOCKER_IMAGE = 'xyc2025/habit-tracker-app:tagname'
+        DOCKER_IMAGE = "xyc2025/habit-tracker-app:${env.BUILD_NUMBER}"
         GITHUB_PAT = credentials('github-habit-tracker')
     }
 
