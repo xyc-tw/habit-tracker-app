@@ -2,9 +2,14 @@ pipeline {
     agent any
 
     environment {
-        // Define Docker Hub repository
-        DOCKER_IMAGE = "xyc2025/habit-tracker-app:${env.BUILD_NUMBER}"
+        // Define ECR repository URL
+        ECR_REPOSITORY_URL = "329599638481.dkr.ecr.eu-central-1.amazonaws.com/habit-tracker"
+        DOCKER_IMAGE = "${ECR_REPOSITORY_URL}:${env.BUILD_NUMBER}"
         GITHUB_PAT = credentials('github-habit-tracker')
+        AWS_CREDENTIALS = credentials('aws-credentials-id') 
+
+        // Docker Hub repository (commented out)
+        // DOCKER_IMAGE_HUB = "xyc2025/habit-tracker-app:${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -29,18 +34,39 @@ pipeline {
                 script {
                     // Build the Docker image with the correct tag
                     sh 'docker build -t $DOCKER_IMAGE .'
+                    // sh 'docker build -t $DOCKER_IMAGE_HUB .' // For Docker Hub
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Login to ECR') {
             steps {
                 script {
-                    // Push the Docker image to Docker Hub
+                    // Login to ECR
+                    sh '''
+                    aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $ECR_REPOSITORY_URL
+                    '''
+                }
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                script {
+                    // Push the Docker image to ECR
                     sh 'docker push $DOCKER_IMAGE'
                 }               
             }
         }
+
+        // stage('Push to Docker Hub') {
+        //     steps {
+        //         script {
+        //             // Push the Docker image to Docker Hub
+        //             sh 'docker push $DOCKER_IMAGE_HUB'
+        //         }               
+        //     }
+        // }
 
         stage('Run Docker Container') {
             steps {
