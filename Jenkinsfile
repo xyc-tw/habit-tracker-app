@@ -4,35 +4,22 @@ pipeline {
     environment {
         // Define Docker Hub credentials and repository
         DOCKER_IMAGE = 'xyc2025/habit-tracker-app:tagname'
-        DOCKER_CREDENTIALS = 'admin'  // This should be the Jenkins credentials ID
-        GITHUB_CREDS = 'github-habit-tracker'   // Jenkins credentials ID for GitHub
+        DOCKER_CREDENTIALS = 'dockerhub-credentials-id'  // This should be the Jenkins credentials ID
     }
 
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    // Checkout code using GitHub credentials
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/main']],
-                        userRemoteConfigs: [[
-                            url: 'git@github.com:xyc-tw/habit-tracker-app.git',
-                            credentialsId: GITHUB_CREDS  // Use the GitHub credentials ID
-                        ]]
-                    ])
-                }
+                // Checkout source code from GitHub
+                git 'https://github.com/xyc-tw/habit-tracker-app.git'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Example for pushing Docker image (using DockerHub credentials)
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                    }
-                    // Docker build and push code here
+                    // Build the Docker image with the correct tag
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
